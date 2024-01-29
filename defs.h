@@ -3,6 +3,8 @@
 #define WHERE "/data/data/com.termux/files/home/storage/shared/"
 #define FILE_NAME "xd.bmp"
 
+#define IMAGE_LENGHT_LIMIT 5000
+
 struct HEADER{
   uint8_t bm[2]; // Theres a BM here
 
@@ -85,4 +87,8 @@ typedef struct _PIXEL_R BGR_t;
 
 void prueba(void);
 void read_header(FILE *fp);
+void write_hchess(FILE *fp, uint32_t width,
+    uint32_t height, BGR_t Colors[2], uint32_t res);
 
+void print_pixel(BGR_t Color);
+void aux_print_row(unsigned char row[], uint32_t len);
