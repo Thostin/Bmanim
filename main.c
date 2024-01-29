@@ -9,7 +9,7 @@ int main(
   /*
   read_header(fp);
   */
-  if(argc != 4){
+  if(argc != 10){
     printf("Improper input\n");
     return 1;
   }
@@ -20,13 +20,13 @@ int main(
   printf("sizeof(BGR_t): %lu\n", sizeof(BGR_t));
 
   BGR_t Colors[2];
-  Colors[0].RED = 0;
-  Colors[0].BLUE = 0;
-  Colors[0].GREEN = 0;
+  Colors[0].RED = atoi(argv[4]);
+  Colors[0].BLUE = atoi(argv[5]);
+  Colors[0].GREEN = atoi(argv[6]);
 
-  Colors[1].RED = 0;
-  Colors[1].GREEN = 255;
-  Colors[1].BLUE = 0;
+  Colors[1].RED = atoi(argv[7]);
+  Colors[1].GREEN = atoi(argv[8]);
+  Colors[1].BLUE = atoi(argv[9]);
   write_hchess(fp, width, height, Colors, res);
   
   //prueba();

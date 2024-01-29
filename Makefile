@@ -3,7 +3,5 @@ bm: main.c func.c
 
 clean:
 	rm bm
-restart:
-	rm ~/.cash/*.bin && \
-	touch ~/.cash/kopta.bin ~/.cash/log.bin
+	rm ~/storage/shared/xd.bmp 
 
