@@ -1,0 +1,8 @@
+The established bitmap file format consists of a BITMAPFILEHEADER 
+structure followed by a BITMAPINFOHEADER, BITMAPV4HEADER, or 
+BITMAPV5HEADER structure. An array of RGBQUAD structures 
+(also called a color table) follows the bitmap information header 
+structure. The color table is followed by a second array of
+indexes into the color table (the actual bitmap data).
+
+
