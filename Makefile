@@ -1,5 +1,5 @@
-bm: main.c func.c
-	clang -Wall -Werror -Wpedantic main.c func.c -o bm
+bm: main.c lfunc.c
+	clang -Wall -Werror -Wpedantic func.c main.c lfunc.c -o bm
 
 clean:
 	rm bm

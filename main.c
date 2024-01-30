@@ -1,14 +1,15 @@
 #include "defs.h"
 
 int main(
-  // void
-  int argc, char *argv[]
+  void
+  //int argc, char *argv[]
 )
 {
-  FILE *fp = fopen(WHERE FILE_NAME, "wb");
   /*
+  FILE *fp = fopen(WHERE FILE_NAME, "wb");
+  
   read_header(fp);
-  */
+  
   if(argc != 10){
     printf("Improper input\n");
     return 1;
@@ -28,7 +29,8 @@ int main(
   Colors[1].GREEN = atoi(argv[8]);
   Colors[1].BLUE = atoi(argv[9]);
   write_hchess(fp, width, height, Colors, res);
-  
+  */ 
+  langton(45, 59, 600);
   //prueba();
   return 0;
 }

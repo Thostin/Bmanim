@@ -74,7 +74,7 @@ void print_pixel(BGR_t Color) {
   printf("%u %u %u\n", Color.RED, Color.GREEN, Color.BLUE);
 }
 
-void aux_print_row(unsigned char row[], uint32_t len)
+void aux_print_row(unsigned char *row, uint32_t len)
 {
   uint32_t act_len = (len - len % 3) / 3;
   for(int i = 0; i < act_len; )
@@ -165,50 +165,10 @@ void write_hchess(FILE *fp, uint32_t width,uint32_t height,
     for(int j = 0; j < res; j++){
       fwrite(row2, sizeof(row2), 1, fp);
     }
-    /*
-    fwrite(row1, sizeof(row1), 1, fp);
 
-    ++i;
-    if(i == height)
-      break;
-    fwrite(row1, sizeof(row1), 1, fp);
-
-    if(i == height)
-      break;
-    ++i;
-    fwrite(row2, sizeof(row2), 1, fp);
-    */
     ++i;
   }
 
   fclose(fp);
 }
-/*
-  unsigned char arr_BM[] = 
-    {0X42, 0X4D,
-      0X46, 0X00, 0X00, 0X00,
-      0X00, 0X00,
-      0X00, 0X00,
-      0X36, 0X00, 0X00, 0X00,
-      0X28, 0X00, 0X00, 0X00,
 
-      0X02, 0X00, 0X00, 0X00,
-      0X02, 0X00, 0X00, 0X00,
-
-      0X01, 0X00,
-      0X18, 0X00,
-
-      0X00, 0X00, 0X00, 0X00,
-      0X10, 0X00, 0X00, 0X00,
-
-      0X00, 0X00, 0X00, 0X00,
-      0X00, 0X00, 0X00, 0X00,
-
-      0X00, 0X00, 0X00, 0X00,
-      0X00, 0X00, 0X00, 0X00,
-
-
-      0X00, 0X00, 0XFF, 0XFF, 0XFF, 0XFF, 0X00, 0X00,
-      0XFF, 0XFF, 0X00, 0XFF, 0X00, 0X00, 0X00, 0X00
-    };
-  */
