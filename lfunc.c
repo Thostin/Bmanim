@@ -75,8 +75,31 @@ void print_matrix(char *map, uint16_t lim_x, uint16_t lim_y){
   }
 }
 
-void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res){
-  uint8_t map[lim_y * lim_x];
+void do_frame(uint32_t fps_count, char *map,
+              uint16_t width, uint16_t height, uint16_t res){
+  char name[100];
+  sprintf(name, "./bmp_files/f%u.bmp", fps_count);
+
+  FILE *fp = fopen(name, "wb");
+  if(NULL == fp){
+    printf("Could not create file %s\n", name);
+    return;
+  }
+
+  arr_to_bmp(fp, height, width, map, res);
+}
+
+void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res,
+             uint32_t lim_steps, uint8_t fps, uint16_t steps_jmp){
+  /*
+    * lim_x: width
+    * lim_y: height
+    * res: resolution 
+    * lim_steps: steps limit
+    * fps: fps of the video
+    * steps_jmp: how many steps per frame
+    */
+  char map[lim_y * lim_x];
 
   memset(map, 0, lim_y * lim_x);
 
@@ -87,53 +110,74 @@ void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res){
   uint8_t m = 3;
   uint8_t aux;
 
+  int k;
+  uint32_t steps = 0;
+  uint32_t fps_count = 0;
+
+  do_frame(0, map, lim_x, lim_y, res);
   while(1){
-    // Morgan laws
-    if(!(p_x < lim_x && p_y < lim_y))
+    if(steps >= lim_steps)
       break;
-    aux = ~map[p_y * lim_x + p_x];
-    map[p_y * lim_x + p_x] = aux;
+    for(k = 0; k < steps_jmp && steps < lim_steps; k++){
+      // Morgan laws
+      if(!(p_x < lim_x && p_y < lim_y))
+        goto final;
+      aux = ~map[p_y * lim_x + p_x];
+      map[p_y * lim_x + p_x] = aux;
 
-    switch(m){
-      case 0:
-      switch(aux){
-          case 0: --p_x;
-            goto exit_nested_switch;
-          case 255: ++p_x;
-            goto exit_nested_switch;
-        }
-      case 1:
-      switch(aux){
-          case 0: --p_y;
-            goto exit_nested_switch;
-          case 255: ++p_y; 
-            goto exit_nested_switch;
-        }
-      case 2:
-      switch(aux){
-          case 0: ++p_x; 
-            goto exit_nested_switch;
-          case 255: --p_x; 
-            goto exit_nested_switch;
-        }
+      switch(m){
+        case 0:
+        switch(aux){
+            case 0: --p_x;
+              goto exit_nested_switch;
+            case 255: ++p_x;
+              goto exit_nested_switch;
+          }
+        case 1:
+        switch(aux){
+            case 0: --p_y;
+              goto exit_nested_switch;
+            case 255: ++p_y; 
+              goto exit_nested_switch;
+          }
+        case 2:
+        switch(aux){
+            case 0: ++p_x; 
+              goto exit_nested_switch;
+            case 255: --p_x; 
+              goto exit_nested_switch;
+          }
 
-      default: //case 3:
-      switch(aux){
-          case 0: ++p_y;
-            goto exit_nested_switch;
-          case 255: --p_y;
-            goto exit_nested_switch;
+        default: //case 3:
+        switch(aux){
+            case 0: ++p_y;
+              goto exit_nested_switch;
+            case 255: --p_y;
+              goto exit_nested_switch;
         }
+      }
+
+      exit_nested_switch:
+      switch(aux){
+        case 0: --m; break;
+        default: ++m;
+      }
+
+      m &= 3;
+      ++steps;
     }
+    if(steps >= lim_steps)
+      break;
+    ++fps_count;
 
-    exit_nested_switch:
-    switch(aux){
-      case 0: --m; break;
-      default: ++m;
-    }
-
-    m &= 3;
+    do_frame(fps_count, map, lim_x, lim_y, res);
   }
+
+final:
+  printf("STEPS: %d\n", steps);
+  printf("fps_count: %u\n", fps_count);
+
+  /*
   FILE *fp = fopen(WHERE LFILE_NAME, "wb");
   if(NULL == fp){
     printf("Could not open %s\n", LFILE_NAME);
@@ -141,5 +185,6 @@ void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res){
   }
 
   arr_to_bmp(fp, lim_y, lim_x, (char *)map, res);
+  */
 }
 
