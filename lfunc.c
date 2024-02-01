@@ -1,7 +1,5 @@
 #include "defs.h"
-#include <sys/wait.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #define LFILE_NAME "langton.bmp"
 void arr_to_bmp(FILE *fp, uint16_t height, uint16_t width,
@@ -243,12 +241,7 @@ void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res,
     system("rm bmp_files/f*.bmp");
     break;
   }
-
-
-  printf("STEPS: %d\n", steps);
-  printf("Total fps: %u\n", total_fps_count);
-
-  /*
+    /*
   FILE *fp = fopen(WHERE LFILE_NAME, "wb");
   if(NULL == fp){
     printf("Could not open %s\n", LFILE_NAME);
@@ -262,6 +255,8 @@ void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res,
   fclose(list);
 
   system("cd bmp_files && ffmpeg -f concat -safe 0 -i list.txt -c copy langton.mp4");
-  
+
+  printf("STEPS: %d\n", steps);
+  printf("Total fps: %u\n", total_fps_count);
 }
 
