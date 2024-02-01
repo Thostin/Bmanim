@@ -96,4 +96,6 @@ void aux_print_row(unsigned char *row, uint32_t len);
 void arr_to_bmp(FILE *fp, uint16_t height, uint16_t width,
                 char *map, uint16_t res);
 void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res,
-             uint32_t lim_steps, uint8_t fps, uint16_t steps_jmp);
+             uint32_t lim_steps, uint8_t fps, uint16_t steps_jmp,
+             uint32_t lim_fps_vid);
+
