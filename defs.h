@@ -5,6 +5,25 @@
 
 #define IMAGE_LENGHT_LIMIT 5000
 
+// Normal pixel
+struct _PIXEL_N {
+  uint8_t RED;
+  uint8_t GREEN;
+  uint8_t BLUE;
+} __attribute__((packed));
+
+// Pixel reversed
+struct _PIXEL_R {
+  uint8_t BLUE;
+  uint8_t GREEN;
+  uint8_t RED;
+} __attribute__((packed));
+
+
+typedef struct HEADER HEADER;
+typedef struct _PIXEL_N RGB_t;
+typedef struct _PIXEL_R BGR_t;
+
 struct HEADER{
   uint8_t bm[2]; // Theres a BM here
 
@@ -63,29 +82,29 @@ struct HEADER{
   // how does this work)
   uint32_t imp;
 
+
+  // Here is the 1-bit color table
+  BGR_t Color1;
+  uint8_t reserved_table1;
+  BGR_t Color2;
+  uint8_t reserved_table2;
+
   // Now comes the real bitmap
   // The bitmap must have a 4-padding
 } __attribute__((packed));
 
-// Normal pixel
-struct _PIXEL_N {
-  uint8_t RED;
-  uint8_t GREEN;
-  uint8_t BLUE;
-} __attribute__((packed));
-
-// Pixel reversed
-struct _PIXEL_R {
-  uint8_t BLUE;
-  uint8_t GREEN;
-  uint8_t RED;
-} __attribute__((packed));
-
-typedef struct HEADER HEADER;
-typedef struct _PIXEL_N RGB_t;
-typedef struct _PIXEL_R BGR_t;
-
-void prueba(void);
+/*
+struct Bit_Field {
+  unsigned b1 : 1;
+  unsigned b2 : 1;
+  unsigned b3 : 1;
+  unsigned b4 : 1;
+  unsigned b5 : 1;
+  unsigned b6 : 1;
+  unsigned b7 : 1;
+  unsigned b8 : 1;
+}
+*/void prueba(void);
 void read_header(FILE *fp);
 void write_hchess(FILE *fp, uint32_t width,
     uint32_t height, BGR_t Colors[2], uint32_t res);
@@ -93,9 +112,12 @@ void write_hchess(FILE *fp, uint32_t width,
 void print_pixel(BGR_t Color);
 void aux_print_row(unsigned char *row, uint32_t len);
 
-void arr_to_bmp(FILE *fp, uint16_t height, uint16_t width,
-                char *map, uint16_t res);
-void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res,
-             uint32_t lim_steps, uint8_t fps, uint16_t steps_jmp,
-             uint32_t lim_fps_vid);
+static inline void arr_to_bmp(FILE *fp, const uint16_t height,
+                const uint16_t width, const char *map,
+                const uint16_t res);
+
+void langton(const uint16_t lim_x, const uint16_t lim_y,
+             const uint16_t res, const uint32_t lim_steps,
+             const uint8_t fps, const uint16_t steps_jmp,
+             const uint32_t lim_fps_vid);
 

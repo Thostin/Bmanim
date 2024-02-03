@@ -1,19 +1,20 @@
 #include "defs.h"
 #include <stdlib.h>
 
-#define LFILE_NAME "langton.bmp"
-void arr_to_bmp(FILE *fp, uint16_t height, uint16_t width,
-                char *map, uint16_t res){
+// #define LFILE_NAME "langton.bmp"
+static inline void arr_to_bmp(FILE *fp, const uint16_t height,
+                const uint16_t width,
+                const char *map, const uint16_t res){
   HEADER head;
 
   head.bm[0] = 'B';
   head.bm[1] = 'M';
 
-  uint32_t theorical_width = sizeof(BGR_t) * width * res;
+  uint32_t theorical_width = ((width / 8) * res);
   uint32_t act_width = theorical_width +
     ((4 - (theorical_width % 4)) % 4);
 
-  uint32_t data_size = res * height * (act_width);
+  uint32_t data_size = height * res * (act_width);
 
   head.file_size = sizeof(HEADER) + data_size;
 
@@ -25,47 +26,54 @@ void arr_to_bmp(FILE *fp, uint16_t height, uint16_t width,
   head.width = width * res;
   head.height = height * res;
   head.planes = 1;
-  head.q_resolution = 24;
+  head.q_resolution = 1;
   head.comp = 0;
   head.data_size = data_size;
 
   head.h_res = 0;
   head.v_res = 0;
-  head.pallete_n = 0;
+  head.pallete_n = 2;
   head.imp = 0;
 
+  head.Color2.RED = 255;
+  head.Color2.GREEN = 165;
+  head.Color2.BLUE = 117;
+
+  head.Color1.RED = 94;
+  head.Color1.GREEN = 33;
+  head.Color1.BLUE = 62;
+
+  head.reserved_table1 = 0;
+  head.reserved_table2 = 0;
   fwrite(&head, sizeof(HEADER), 1, fp);
 
-  unsigned char row[act_width];
-  uint8_t aux;
-  int p, i, j, r;
+  uint32_t i, j, r;
+  unsigned char row[data_size];
+  unsigned char *aux_ptr = &row[0];
+  unsigned char *aux_ptr2;
+  memset(row, 0, sizeof(row));
 
-  BGR_t *bgr_row = (BGR_t *)row;
-  BGR_t aux_bgr;
-
-
-  uint16_t act_j = 0;
+  uint32_t act_j = 0;
   for(i = 0; i < height; ){
     for(j = 0; j < width; ){
-      aux = map[i * width + j] + 1;
-      aux *= 255;
-
-      aux_bgr.RED = aux;
-      aux_bgr.GREEN = aux;
-      aux_bgr.BLUE = aux;
-
-      for(p = 0; p < res; p++){
-        bgr_row[act_j] = aux_bgr;
+      for(r = 0; r < res; ){
+        aux_ptr[act_j >> 3] |= ((map[i * width + j] + 1) << (7 - (act_j & 7)));
         ++act_j;
+        ++r;
       }
       ++j;
     }
-    act_j = 0;
-    for(r = 0; r < res; r++){
-      fwrite(row, act_width, 1, fp);
-    }
     ++i;
+    act_j = 0;
+    aux_ptr2 = aux_ptr + act_width;
+    for (r = 0; r < res - 1; r++) {
+      memcpy(aux_ptr2, aux_ptr, act_width);
+      aux_ptr2 += act_width;
+    }
+    aux_ptr = aux_ptr2;
   }
+
+  fwrite(row, sizeof(row), 1, fp);
   fclose(fp);
 }
 
@@ -78,8 +86,9 @@ void print_matrix(char *map, uint16_t lim_x, uint16_t lim_y){
   }
 }
 
-void do_frame(uint32_t fps_count, char *map,
-              uint16_t width, uint16_t height, uint16_t res){
+void do_frame(const uint32_t fps_count, const char *map,
+              const uint16_t width, const uint16_t height,
+              const uint16_t res){
   char name[150];
   sprintf(name, "/data/data/com.termux/files/home/C/projects/bmanim/bmp_files/f%d.bmp", fps_count);
 
@@ -92,17 +101,11 @@ void do_frame(uint32_t fps_count, char *map,
   arr_to_bmp(fp, height, width, map, res);
 }
 
-void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res,
-             uint32_t lim_steps, uint8_t fps, uint16_t steps_jmp,
-             uint32_t lim_fps_vid){
-  /*
-    * lim_x: width
-    * lim_y: height
-    * res: resolution 
-    * lim_steps: steps limit
-    * fps: fps of the video
-    * steps_jmp: how many steps per frame
-    */
+void langton(const uint16_t lim_x, const uint16_t lim_y,
+             const uint16_t res, const uint32_t lim_steps,
+             const uint8_t fps, const uint16_t steps_jmp,
+             const uint32_t lim_fps_vid){
+ 
   char map[lim_y * lim_x];
   FILE *list = fopen("bmp_files/list.txt", "w");
   memset(map, 0, lim_y * lim_x);
@@ -111,21 +114,19 @@ void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res,
   p_x = lim_x >> 1;
   p_y = lim_y >> 1;
 
-  uint8_t m = 3;
+  uint8_t m = 0;
   uint8_t aux;
 
   int k;
   uint32_t steps = 0;
   uint32_t fps_count = 0;
   uint32_t total_fps_count = 0;
-  //int pid;
 
   char ffmpeg_command[500];
   char vid_name[10];
 
   memset(ffmpeg_command, 0, sizeof(ffmpeg_command));
 
-  //scanf("%[^\n]s", ffmpeg_command);
   do_frame(0, map, lim_x, lim_y, res);
   int vid_count = 0;
   while(1){
@@ -133,7 +134,6 @@ void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res,
       if(steps >= lim_steps)
         goto refinal;
       for(k = 0; k < steps_jmp && steps < lim_steps; k++){
-        // Morgan laws
         if(!(p_x < lim_x && p_y < lim_y))
           goto refinal;
         aux = ~map[p_y * lim_x + p_x];
@@ -149,9 +149,9 @@ void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res,
             }
           case 1:
           switch(aux){
-              case 0: --p_y;
+              case 0: ++p_y;
                 goto exit_nested_switch;
-              case 255: ++p_y; 
+              case 255: --p_y; 
                 goto exit_nested_switch;
             }
           case 2:
@@ -164,9 +164,9 @@ void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res,
 
           default: //case 3:
           switch(aux){
-              case 0: ++p_y;
+              case 0: --p_y;
                 goto exit_nested_switch;
-              case 255: --p_y;
+              case 255: ++p_y;
                 goto exit_nested_switch;
           }
         }
@@ -190,26 +190,11 @@ void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res,
     fps_count = 0;
     sprintf(vid_name, "v%d.mp4", vid_count);
 
-    sprintf(ffmpeg_command, "ffmpeg -r %d -f image2 -s 1920x1080 -i bmp_files/f%%d.bmp -vcodec libx264 -crf 1 -pix_fmt yuv420p bmp_files/%s", fps, vid_name);
-    printf("ffmpeg command: \n%s\n", ffmpeg_command);
-    //getchar();
+    sprintf(ffmpeg_command, "ffmpeg -hide_banner -r %d -f image2 -s %dx%d -i bmp_files/f%%d.bmp -vcodec libx264 -crf 1 -pix_fmt yuv420p bmp_files/%s", fps, lim_x * res, lim_y * res, vid_name);
+    printf("Making vi n%d\n", vid_count);
     system(ffmpeg_command);
    
     fprintf(list, "file '%s'\n", vid_name);
-    /*
-    pid = fork();
-    if (pid == 0) {
-      execl("/data/data/com.termux/files/usr/bin/ffmpeg", "ffmpeg", "-r", "60", "-f", "image2", "-s", "1920x1080", "-i", "/data/data/com.termux/files/home/C/projects/bmanim/bmp_files/f%d.bmp", "-vcodec", "libx264", "-crf", "1", "-pix_fmt", "yuv420p", "/data/data/com.termux/files/home/C/projects/bmanim/bmp_files/v0.mp4", NULL);
-    } else if (pid > 0) {
-      wait(NULL); / wait for child 
-    } else {
-         it was not possible to 
-         *
-         * create child process, so print error message 
-      perror("fork failed");
-    }
-  */
-   // execl(ffmpeg_command);
     system("rm bmp_files/f*.bmp");
     ++vid_count;
     memset(ffmpeg_command, 0, sizeof(ffmpeg_command));
@@ -218,45 +203,30 @@ void langton(uint16_t lim_x, uint16_t lim_y, uint16_t res,
 
   refinal:
     sprintf(vid_name, "v%d.mp4", vid_count);
-    sprintf(ffmpeg_command, "ffmpeg -r %d -f image2 -s 1920x1080 -i bmp_files/f%%d.bmp -vcodec libx264 -crf 1 -pix_fmt yuv420p bmp_files/%s", fps, vid_name);
+    printf("Making final video\n");
+    sprintf(ffmpeg_command, "ffmpeg -hide_banner -r %d -f image2 -s %dx%d -i bmp_files/f%%d.bmp -vcodec libx264 -crf 1 -pix_fmt yuv420p bmp_files/%s", fps, lim_x * res, lim_y * res, vid_name);
 
-    printf("ffmpeg command: \n%s\n", ffmpeg_command);
-    system(ffmpeg_command);
-    fprintf(list, "file '%s'\n", vid_name);
-    //getchar();
-    //execl(ffmpeg_command);
-    /*
-
-    pid = fork();
-    if (pid == 0) {
-      execl("/data/data/com.termux/files/usr/bin/ffmpeg", "ffmpeg", "-r", "60", "-f", "image2", "-s", "1920x1080", "-i", "/data/data/com.termux/files/home/C/projects/bmanim/bmp_files/f%d.bmp", "-vcodec", "libx264", "-crf", "1", "-pix_fmt", "yuv420p", "/data/data/com.termux/files/home/C/projects/bmanim/bmp_files/v0.mp4", NULL);
-    } else if (pid > 0) {
-      wait(NULL); / wait for child 
-    } else {
-        / it was not possible to create 
-         * child process, so print error message 
-      perror("fork failed");
+    if(!system(ffmpeg_command)){
+      fprintf(list, "file '%s'\n", vid_name);
+      system("rm bmp_files/f*.bmp");
     }
-*/
-    system("rm bmp_files/f*.bmp");
+
     break;
   }
-    /*
-  FILE *fp = fopen(WHERE LFILE_NAME, "wb");
-  if(NULL == fp){
-    printf("Could not open %s\n", LFILE_NAME);
-    return;
-  }
-
-  arr_to_bmp(fp, lim_y, lim_x, (char *)map, res);
-  */
 
   fflush(list);
   fclose(list);
 
-  system("cd bmp_files && ffmpeg -f concat -safe 0 -i list.txt -c copy langton.mp4");
+  system("rm ~/storage/shared/langton.mp4");
+  printf("Linking videos\n");
 
-  printf("STEPS: %d\n", steps);
+  if(vid_count > 0){
+    system("cd bmp_files && ffmpeg -hide_banner -f concat -safe 0 -i list.txt -c copy ~/storage/shared/langton.mp4");
+    system("rm bmp_files/v*.mp4 bmp_files/list.txt");
+  } else {
+    system("mv bmp_files/v0.mp4 ~/storage/shared/langton.mp4");
+  }
+  printf("DONE\nSTEPS: %d\n", steps);
   printf("Total fps: %u\n", total_fps_count);
 }
 

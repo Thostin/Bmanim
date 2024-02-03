@@ -30,7 +30,9 @@ int main(
   Colors[1].BLUE = atoi(argv[9]);
   write_hchess(fp, width, height, Colors, res);
   */ 
-  langton(128, 72, 15, 15000, 60, 1, 200);
+  langton(64, 67, 16, 15000, 60, 1, 3800);
+  // langton(80, 47, 16, 1000, 60, 1, 3800);
+
   //langton(45, 59, 600);
   //prueba();
   return 0;
